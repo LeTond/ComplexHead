@@ -13,10 +13,6 @@ import os
 
 
 class FileDirectoryWorker():
-    # def __init__(self):
-    #     self.project_name = project_name
-    #     self.results = results
-
     def log_stats(self, project_name: str, results = None):
         file = open(f'{project_name}_log.txt', 'a')
         file.write(results + "\n")

@@ -13,15 +13,9 @@ import torch
 from configuration import *
 from Preprocessing.split_dataset import *
 from Preprocessing.dirs_logs import FileDirectoryWorker
-from Model.unet2D import UNet_2D, UNet_2D_AttantionLayer, UNetResnet, SegNet
-# from Model.unet3D import UNet_3D, UNet_3D_AttantionLayer
-# from Model.FCT.utils.model import FCT
-# from Model.resnet import ResNet, BasicBlock
-# from Model.models import bounding_box_CNN
+from Model.unet2D import UNet_2D, UNet_2D_AttantionLayer
 from Training.train import *
 from Training.dataset import *
-from Training.ranger import Ranger
-from Training.optimizer import Lion
 
 
 
@@ -39,7 +33,7 @@ class ChooseModelConfig(MetaParameters):
 
     @property  
     def choose_model_key(self):
-        if self.UNET2 is True and self.UNET3 is False:
+        if self.UNET2 is True:
             return self.UNET2_FOLD
         elif self.UNET1 is True and self.UNET2 is False:
             return self.UNET1_FOLD
@@ -69,9 +63,6 @@ class ChooseModelConfig(MetaParameters):
                 model = UNet_2D_AttantionLayer().to(device = device)
         else:
             model = UNet_2D_AttantionLayer().to(device = device)
-            # model = UNet_2D().to(device=device)
-            # model = UNetResnet().to(device=device)
-            # model = SegNet().to(device=device)
 
         return model
 
@@ -87,14 +78,7 @@ class ChooseModelConfig(MetaParameters):
                     for param in child.parameters(): 
                         param.requires_grad = False
 
-        # optimizer = torch.optim.Adam(filter(lambda x: x.requires_grad, model.parameters()), lr = meta.LR, weight_decay = meta.WDC)
-        # optimizer = torch.optim.Adam(model.parameters(), lr = meta.LR, weight_decay = meta.WDC)
-        # optimizer = torch.optim.AdamW(model.parameters(), lr = meta.LR, weight_decay = meta.WDC)
-        # optimizer = Lion(model.parameters(), lr = meta.LR, betas = (0.9, 0.99), weight_decay = meta.WDC)
-        # optimizer = torch.optim.AdamW(model.parameters(), lr = learning_rate, weight_decay = wdc, amsgrad = False)
-        # optimizer = torch.optim.SGD(model.parameters(), lr = meta.LR, weight_decay = meta.WDC, momentum = 0.9, nesterov = True)        
-        optimizer = Ranger(self.model.parameters(), lr = self.LR, k = 6, N_sma_threshhold = 5, weight_decay = self.WDC)
-        # optimizer = Ranger(filter(lambda x: x.requires_grad, self.model.parameters()),  lr = self.LR, k = 6, N_sma_threshhold = 5, weight_decay = self.WDC)
+        optimizer = torch.optim.Adam(model.parameters(), lr = meta.LR, weight_decay = meta.WDC)
 
         return optimizer
 
@@ -106,10 +90,6 @@ class ChooseModelConfig(MetaParameters):
     def choose_scheduler_gen(self):
         scheduler_gen = torch.optim.lr_scheduler.CosineAnnealingLR(
             self.optimizer, T_max = self.TMAX, eta_min = 0, last_epoch = -1, verbose = True)
-
-        # scheduler_gen = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        #     optimizer, mode = 'min', factor = 0.8, patience = 5, threshold = 0.0001, threshold_mode = 'rel', 
-        #     cooldown = 0, min_lr = 0, eps = 1e-08, verbose = 'deprecated')
 
         return scheduler_gen
 
@@ -143,12 +123,6 @@ if __name__ == '__main__':
     valid_ds_origin, valid_ds_mask, valid_ds_template, valid_ds_names = GetData(valid_list, False).generated_data_list
 
     train_set = MyDataset(train_ds_origin, train_ds_mask, train_ds_template, train_ds_names, default_transform)
-    for i in range(2):
-        train_set += MyDataset(train_ds_origin, train_ds_mask, train_ds_template, train_ds_names, transform_04)
-        train_set += MyDataset(train_ds_origin, train_ds_mask, train_ds_template, train_ds_names, transform_01)
-        # train_set += MyDataset(train_ds_origin, train_ds_mask, train_ds_template, train_ds_names, transform_05)
-        # train_set += MyDataset(train_ds_origin, train_ds_mask, train_ds_template, train_ds_names, transform_06)
-
     train_loader = DataLoader(train_set, meta.BT_SZ, drop_last = True, shuffle = True, pin_memory = False)
 
     valid_set = MyDataset(valid_ds_origin, valid_ds_mask, valid_ds_template, valid_ds_names, default_transform)
@@ -158,10 +132,6 @@ if __name__ == '__main__':
 
     print(f'Train size: {len(train_set)} | Valid size: {len(valid_set)}')
     model = TrainNetwork(model, optimizer, loss_function, scheduler_gen, train_loader, valid_loader, meta, ds).train()
-
-
-    # summary(model,input_size=(1,512, 512))
-
 
 
 

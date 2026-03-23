@@ -30,7 +30,7 @@ class TrainNetwork(MetaParameters):
 
     @property  
     def choose_model_key(self):
-        if self.UNET2 is True and self.UNET3 is False:
+        if self.UNET2 is True:
             return self.UNET2_FOLD
         elif self.UNET1 is True and self.UNET2 is False:
             return self.UNET1_FOLD
@@ -98,26 +98,14 @@ class TrainNetwork(MetaParameters):
                 predict = torch.argmax(predict, dim = 1)
                 labels = torch.argmax(labels, dim = 1)
                 
-                # for key in range(1, self.NUM_CLASS):
-                #     predict_ = (predict == key)
-                #     labels_ = (labels == key)
-                #     train_loss_02 += (1 - float(self.ds(predict_, labels_)) * self.CEW[key])
-
-                # train_loss = train_loss_01 + train_loss_02
-                
                 self.optimizer.zero_grad()
                 train_loss.backward()
                 self.optimizer.step()
 
-            # with warmup_scheduler.dampening():
-                # self.scheduler_gen.step()
             self.scheduler_gen.step() #g_mean_train_loss,  g_mean_valid_loss
             
             training = self.get_metrics(self.train_loader)
             validating = self.get_metrics(self.valid_loader)
-
-            # val_loss = validating[0]
-            # self.scheduler_gen.step(val_loss)
             
             results += f'TRAIN: Loss = {round(training[0], 3)}'
             

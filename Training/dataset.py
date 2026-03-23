@@ -30,7 +30,7 @@ class GetData(MetaParameters):
         
     @property
     def unet_type(self):
-        if self.UNET2 is True and self.UNET3 is False:
+        if self.UNET2 is True:
             return 'default'
         elif self.UNET1 is True and self.UNET2 is False:
             return 'default'
@@ -39,7 +39,7 @@ class GetData(MetaParameters):
 
     @property
     def mask_type(self):
-        elif self.UNET2 is True and self.UNET3 is False:
+        if self.UNET2 is True:
             return 'multy_mask'
         elif self.UNET1 is True and self.UNET2 is False:
             return 'binary_mask'
@@ -77,16 +77,6 @@ class GetData(MetaParameters):
 
         return diction
 
-    @property
-    def cropp_gap(self):
-        if self.MULTYGAP:
-            cropp_gap = random.choice([6, 7, 8, 9, 10])
-        
-        else:
-            cropp_gap = 8
-
-        return cropp_gap
-
     def check_mask(self, mask, sub_name, slc):
         if self.EMPTY is False and (mask > 0).any() is False:
             print(f"Subject {sub_name} slice {slc} was passed because EMPY is FALSE")
@@ -102,12 +92,11 @@ class GetData(MetaParameters):
     def pool_worker(self, file_name):
         list_images, list_masks, list_templates, list_names = [], [], [], []
 
-        if file_name.endswith('.nii'):
+        if file_name.endswith('.nii'):            
             images = ReadImages(f"{self.ORIGS_DIR}/{file_name}").view_matrix
             masks = ReadImages(f"{self.MASKS_DIR}/{file_name}").view_matrix
 
             sub_name = file_name.replace('.nii', '')
-
             if self.mask_type == 'multy_mask':
                 templates = ReadImages(f"{self.MASKS_DIR}/{file_name}").view_matrix
 
@@ -172,19 +161,6 @@ class GetData(MetaParameters):
                         list_names.append(sub_names[slc])
                 except:
                     pass 
-
-
-        # for i in range(1):
-        #     with Pool(processes=4) as pool:
-        #         try:
-        #             for patch in pool.imap_unordered(self.pool_worker, self.files):
-        #                 # if self.check_mask(patch[1]):
-        #                 list_images.append([img for img in patch[0]])
-        #                 list_masks.append([msk for msk in patch[1]])
-        #                 list_names.append([nm for nm in patch[2]])
-                            
-        #         except:
-        #             pass 
 
         try:
             list_images, list_masks, list_templates, list_names = \
