@@ -102,12 +102,12 @@ class MetaParameters:
     MULTY_CE_WEIGHTS = torch.FloatTensor([0.05, 0.7, 0.3, 0.7, 0.7, 0.9, 0.9, 0.9, 0.7, 0.7, 0.7, 0.7, 0.9])
     
     if UNET2 is True:
-        DICT_CLASS = BINARY_DICT_CLASS
-        CE_WEIGHTS = BINARY_CE_WEIGHTS
-            
-    elif UNET1 is True and UNET2 is False:
         DICT_CLASS = MULTY_DICT_CLASS
         CE_WEIGHTS = MULTY_CE_WEIGHTS
+            
+    elif UNET1 is True and UNET2 is False:
+        DICT_CLASS = BINARY_DICT_CLASS
+        CE_WEIGHTS = BINARY_CE_WEIGHTS
 
     NUM_CLASS = len(DICT_CLASS)
 
